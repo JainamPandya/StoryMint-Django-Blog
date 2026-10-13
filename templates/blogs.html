@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row">
+  <div class="col-md-8 blog-main">
+    <div class="blog-post">
+
+      <!-- Title -->
+      <h1 class="blog-post-title">{{ single_blog.title }}</h1>
+
+      <!-- Category Badge -->
+      <a href="{% url 'posts_by_category' single_blog.category.id %}">
+        <span class="badge badge-warning text-uppercase mb-2" style="font-size: 0.85rem; letter-spacing: 1px;">
+          {{ single_blog.category.category_name }}
+        </span>
+      </a>
+
+      <!-- Featured Image -->
+      {% if single_blog.featured_image %}
+      <img
+        src="{{ single_blog.featured_image.url }}"
+        alt="{{ single_blog.title }}"
+        class="img-fluid rounded mb-4 mt-3"
+        style="width: 100%; max-height: 420px; object-fit: cover;"
+      >
+      {% endif %}
+
+      <!-- Meta: Author, Date & Time -->
+      <p class="blog-post-meta">
+        {{ single_blog.created_at|date:"F j, Y" }} at {{ single_blog.created_at|time:"g:i A" }}
+        &middot; By <strong>{{ single_blog.author.get_full_name|default:single_blog.author.username }}</strong>
+      </p>
+
+      <!-- Short Description -->
+      <p class="lead" style="color: #555; border-left: 4px solid #ffc107; padding-left: 15px;">
+        {{ single_blog.short_description }}
+      </p>
+
+      <hr>
+
+      <!-- Blog Body -->
+      <div class="blog-body" style="font-size: 1.1rem; line-height: 1.8;">
+        {{ single_blog.blog_body|linebreaks }}
+      </div>
+
+      <hr>
+
+      <!-- Footer Meta -->
+      <p class="text-muted">
+        <small>
+          Last updated on {{ single_blog.updated_at|date:"F j, Y" }} at {{ single_blog.updated_at|time:"g:i A" }}
+        </small>
+      </p>
+
+    </div><!-- /.blog-post -->
+  </div><!-- /.blog-main -->
+
+  <!-- Sidebar -->
+  <aside class="col-md-4 blog-sidebar">
+    <div class="p-3 mb-3 bg-light rounded">
+      <h4 class="font-italic">About the Author</h4>
+      <p class="mb-0">
+        <strong>{{ single_blog.author.get_full_name|default:single_blog.author.username }}</strong>
+      </p>
+    </div>
+
+    <div class="p-3 mb-3 bg-light rounded">
+      <h4 class="font-italic">Post Info</h4>
+      <ul class="list-unstyled mb-0">
+        <li><strong>Category:</strong> {{ single_blog.category.category_name }}</li>
+         
+        <li><strong>Published:</strong> {{ single_blog.created_at|date:"M j, Y" }}</li>
+      </ul>
+    </div>
+
+    <div class="p-3">
+      <h4 class="font-italic">Follow Us</h4>
+      <ol class="list-unstyled">
+        <li><a href="#">GitHub</a></li>
+        <li><a href="#">LinkedIn</a></li>
+      </ol>
+    </div>
+  </aside><!-- /.blog-sidebar -->
+</div><!-- /.row -->
+
+{% endblock %}
