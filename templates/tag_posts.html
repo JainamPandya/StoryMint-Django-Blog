@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}#{{ tag.name }} Stories — StoryMint{% endblock %}
+
+{% block content %}
+<div class="mb-5 pb-3 border-bottom">
+    <div class="d-flex align-items-center mb-2">
+        <a href="{% url 'home' %}" class="text-muted small">&larr; Back to Home</a>
+    </div>
+    <div class="d-flex justify-content-between align-items-end">
+        <div>
+            <span class="badge-category mb-2">Tag Topic</span>
+            <h2 class="display-4 font-weight-bold mb-0">#{{ tag.name }}</h2>
+        </div>
+        <span class="text-muted small">{{ posts.paginator.count }} {{ posts.paginator.count|pluralize:"story,stories" }}</span>
+    </div>
+</div>
+
+<div class="row">
+    {% if posts %}
+    {% for post in posts %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            {% if post.featured_image %}
+            <a href="{% url 'blogs' post.slug %}">
+                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="card-img-top" style="height: 220px; object-fit: cover;">
+            </a>
+            {% endif %}
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <a href="{% url 'posts_by_category' post.category.id %}" class="badge-category">{{ post.category.category_name }}</a>
+                        <small class="text-muted"><i class="fa-regular fa-clock mr-1"></i> {{ post.reading_time }} min read</small>
+                    </div>
+                    <h4 class="card-title font-weight-bold mb-2">
+                        <a href="{% url 'blogs' post.slug %}">{{ post.title }}</a>
+                    </h4>
+                    <p class="card-text text-muted mb-3">{{ post.short_description|truncatewords:22 }}</p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <span class="small font-weight-bold">
+                        By <a href="{% url 'author_profile' post.author.username %}">{{ post.author.get_full_name|default:post.author.username }}</a>
+                    </span>
+                    <span class="small text-muted"><i class="fa-regular fa-eye mr-1"></i> {{ post.views_count }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Pagination Controls -->
+    {% if posts.has_other_pages %}
+    <div class="col-12 my-4">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if posts.has_previous %}
+                <li class="page-item"><a class="page-link shadow-sm" href="?page={{ posts.previous_page_number }}">&laquo; Previous</a></li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo; Previous</span></li>
+                {% endif %}
+
+                {% for num in posts.paginator.page_range %}
+                {% if posts.number == num %}
+                <li class="page-item active"><span class="page-link bg-warning border-warning text-dark font-weight-bold">{{ num }}</span></li>
+                {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
+                <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+                {% endfor %}
+
+                {% if posts.has_next %}
+                <li class="page-item"><a class="page-link shadow-sm" href="?page={{ posts.next_page_number }}">Next &raquo;</a></li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">No articles found with this tag yet.</p>
+        <a href="{% url 'home' %}" class="btn btn-warning btn-sm font-weight-bold">Browse other stories</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

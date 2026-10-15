@@ -6,59 +6,235 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Django Blogs</title>
+    <title>{% block title %}StoryMint — Ideas, Stories & Perspectives{% endblock %}</title>
+
+    <!-- SEO & OpenGraph Meta Tags -->
+    <meta name="description" content="{% block meta_description %}Discover inspiring articles, programming tutorials, tech insights, and creative ideas on StoryMint.{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}StoryMint — Ideas, Stories & Perspectives{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Discover inspiring articles, programming tutorials, tech insights, and creative ideas on StoryMint.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% static 'images/default-cover.jpg' %}{% endblock %}">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="alternate" type="application/rss+xml" title="StoryMint RSS Feed" href="{% url 'post_feed' %}">
+
+    <!-- Prevent Dark Mode Flash -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('storymint_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Bootstrap 4 CDN -->
     <link href="https://getbootstrap.com/docs/4.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Playfair+Display:700,900" rel="stylesheet">
     <link href="{% static 'css/blog.css' %}" rel="stylesheet">
+
+    <!-- Syntax Highlighting (Prism.js) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 </head>
 
 <body>
+    <!-- Top Reading Progress Indicator -->
+    <div id="reading-progress"></div>
+
     <div class="container">
+        <!-- Main Header -->
         <header class="blog-header py-3">
             <div class="row flex-nowrap justify-content-between align-items-center">
+                <!-- Logo -->
                 <div class="col-4 pt-1">
-                    <a class="blog-header-logo text-dark" href="/">StoryMint</a>
+                    <a class="blog-header-logo" href="{% url 'home' %}">
+                        Story<span>Mint</span>
+                    </a>
                 </div>
-                <div class="col-4">
+
+                <!-- Search Bar -->
+                <div class="col-5">
                     <form action="{% url 'search' %}" method="GET">
                         <div class="input-group">
-                            <input class="form-control" type="text" value="{{keyword}}" name="keyword" placeholder="Enter search term..."  aria-label="Enter search term....">
-                            <button type="submit" class="btn btn-warning" id="button-search" type="button">Go!</button>
+                            <input class="form-control" type="text" value="{{ keyword|default:'' }}" name="keyword" placeholder="Search stories, topics, tags..." aria-label="Search stories">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-warning" id="button-search">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
-                <div class="col-4 d-flex justify-content-end align-items-center">
+
+                <!-- User Actions & Theme Toggle -->
+                <div class="col-3 d-flex justify-content-end align-items-center">
+                    <!-- Theme Toggle -->
+                    <button class="theme-toggle-btn mr-3" id="theme-toggle" aria-label="Toggle dark/light theme" title="Toggle theme">
+                        <i class="fa-solid fa-moon" id="theme-icon"></i>
+                    </button>
+
                     {% if not user.is_authenticated %}
-                    <a class="btn btn-sm btn-warning" href="{% url 'login' %}">Login</a> &nbsp;
-                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'register' %}">Register</a>
+                    <a class="btn btn-sm btn-warning font-weight-bold mr-2" href="{% url 'login' %}">Log In</a>
+                    <a class="btn btn-sm btn-outline-secondary font-weight-bold" href="{% url 'register' %}">Sign Up</a>
                     {% else %}
-                    <span><a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboard' %}">Dashboard</a></span>
-                    &emsp;
-                    <span><a class="btn btn-sm btn-outline-secondary" href="{% url 'logout' %}">Logout</a></span>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle font-weight-bold d-flex align-items-center" type="button" id="userMenuDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa-regular fa-user-circle mr-1"></i> {{ user.username }}
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right shadow-sm border-0" aria-labelledby="userMenuDropdown">
+                            <a class="dropdown-item" href="{% url 'dashboard' %}"><i class="fa-solid fa-gauge mr-2"></i> Dashboard</a>
+                            <a class="dropdown-item" href="{% url 'add_post' %}"><i class="fa-solid fa-pen-to-square mr-2"></i> Write a Story</a>
+                            <a class="dropdown-item" href="{% url 'author_profile' user.username %}"><i class="fa-solid fa-id-card mr-2"></i> Public Profile</a>
+                            <a class="dropdown-item" href="{% url 'profile_settings' %}"><i class="fa-solid fa-sliders mr-2"></i> Profile Settings</a>
+                            {% if user.is_staff or user.is_superuser %}
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'categories' %}"><i class="fa-solid fa-folder-tree mr-2"></i> Manage Categories</a>
+                            <a class="dropdown-item" href="{% url 'tags' %}"><i class="fa-solid fa-tags mr-2"></i> Manage Tags</a>
+                            <a class="dropdown-item" href="/admin/" target="_blank"><i class="fa-solid fa-shield-halved mr-2"></i> Django Admin</a>
+                            {% endif %}
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket mr-2"></i> Log Out</a>
+                        </div>
+                    </div>
                     {% endif %}
                 </div>
             </div>
         </header>
 
-        <div class="nav-scroller py-1 mb-2">
-            <nav class="nav d-flex justify-content-between">
+        <!-- Categories Nav Bar -->
+        <div class="nav-scroller py-2 mb-3">
+            <nav class="nav d-flex justify-content-between align-items-center">
+                <a class="p-2 {% if request.path == '/' %}font-weight-bold text-dark{% endif %}" href="{% url 'home' %}">
+                    <i class="fa-solid fa-house mr-1"></i> Home
+                </a>
                 {% for cat in categories %}
-                <a class="p-2 text-muted" href="{% url 'posts_by_category' cat.id %}">{{ cat.category_name }}</a>
+                <a class="p-2" href="{% url 'posts_by_category' cat.id %}">{{ cat.category_name }}</a>
                 {% endfor %}
             </nav>
         </div>
 
-<!-- ------------------------------------------------------------------- -->
+        <!-- Flash Messages -->
+        {% if messages %}
+        <div class="my-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+                {% if message.tags == 'success' %}<i class="fa-solid fa-circle-check mr-2"></i>{% endif %}
+                {% if message.tags == 'error' or message.tags == 'danger' %}<i class="fa-solid fa-circle-exclamation mr-2"></i>{% endif %}
+                {% if message.tags == 'warning' %}<i class="fa-solid fa-triangle-exclamation mr-2"></i>{% endif %}
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-{% block content %}
+        <!-- Main Content -->
+        {% block content %}
+        {% endblock %}
 
-{% endblock %}
+    </div><!-- /.container -->
 
-<!-- ------------------------------------------------------------------- -->
+    <!-- Modern Footer -->
+    <footer class="blog-footer">
+        <div class="container">
+            <div class="row text-left mb-4">
+                <div class="col-md-4 mb-3">
+                    <h5 class="font-weight-bold mb-3">StoryMint</h5>
+                    <p class="text-muted small">
+                        A modern digital publishing publication designed for passionate writers, thinkers, and lifelong learners. Discover inspiring stories on technology, culture, and design.
+                    </p>
+                    <div class="d-flex mt-3">
+                        <a href="{% url 'post_feed' %}" class="btn btn-sm btn-outline-warning mr-2" title="RSS Feed"><i class="fa-solid fa-rss"></i> RSS</a>
+                        <a href="/sitemap.xml" class="btn btn-sm btn-outline-secondary" title="Sitemap" target="_blank"><i class="fa-solid fa-sitemap"></i> Sitemap</a>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <h6 class="font-weight-bold text-uppercase mb-3" style="letter-spacing: 1px;">Categories</h6>
+                    <ul class="list-unstyled small">
+                        {% for cat in categories|slice:":6" %}
+                        <li class="mb-2"><a href="{% url 'posts_by_category' cat.id %}" class="text-muted">{{ cat.category_name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-md-5 mb-3">
+                    <h6 class="font-weight-bold text-uppercase mb-3" style="letter-spacing: 1px;">Stay Updated</h6>
+                    <p class="text-muted small">Get the latest stories and insightful articles delivered directly to your inbox every week.</p>
+                    <form action="{% url 'subscribe_newsletter' %}" method="POST" class="mt-2">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-warning font-weight-bold">Subscribe</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <hr style="border-color: var(--border-color);">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-muted pt-2">
+                <p class="mb-0">&copy; {% now "Y" %} StoryMint. All rights reserved.</p>
+                <p class="mb-0">Built with Django &amp; Passion.</p>
+            </div>
+        </div>
+    </footer>
 
-        <footer class="blog-footer">
-            <p>Django blog built with � by <a href="#">Rathan Kumar</a></p>
-        </footer>
+    <!-- Bootstrap & jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Prism Syntax Highlighter -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+    <!-- Theme Switcher & Progress Bar Script -->
+    <script>
+        // Reading Progress Bar
+        window.addEventListener('scroll', function () {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (height > 0) ? (winScroll / height) * 100 : 0;
+            const progressBar = document.getElementById('reading-progress');
+            if (progressBar) {
+                progressBar.style.width = scrolled + '%';
+            }
+        });
+
+        // Theme Toggle
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        updateThemeIcon(currentTheme);
+
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', function () {
+                const activeTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('storymint_theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
+    </script>
+
+    {% block extra_scripts %}
+    {% endblock %}
 </body>
 
 </html>

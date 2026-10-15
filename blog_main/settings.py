@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
     '12.34.56.78',      # Your server's public IP
     'localhost',        # Keep these if testing prod mode locally
     '127.0.0.1',
+    'testserver',
 ]
 
 
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     'blogs',
     'crispy_forms',
     'crispy_bootstrap4',
@@ -148,3 +150,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+LOGIN_URL = 'login'

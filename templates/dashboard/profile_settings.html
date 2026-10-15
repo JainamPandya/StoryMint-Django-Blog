@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile Settings — StoryMint{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <div>
+                <h2 class="font-weight-bold mb-0">Author Profile Settings</h2>
+                <small class="text-muted">Manage your public persona, biography, and social links</small>
+            </div>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm mr-2">&larr; Dashboard</a>
+                <a href="{% url 'author_profile' request.user.username %}" class="btn btn-warning btn-sm font-weight-bold" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> View Public Page
+                </a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm p-4 p-md-5">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Profile Picture Preview -->
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                    {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="{{ request.user.username }}" class="avatar-lg mr-4">
+                    {% else %}
+                    <span class="avatar-placeholder avatar-lg mr-4" style="font-size: 2rem;">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </span>
+                    {% endif %}
+                    <div>
+                        <h5 class="font-weight-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h5>
+                        <p class="text-muted small mb-0">Upload a high-resolution square avatar (JPG or PNG).</p>
+                    </div>
+                </div>
+
+                <h5 class="font-weight-bold mb-3">Account Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ user_form.first_name|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ user_form.last_name|as_crispy_field }}
+                    </div>
+                </div>
+                {{ user_form.email|as_crispy_field }}
+
+                <h5 class="font-weight-bold mb-3 mt-4 pt-3 border-top">Public Bio &amp; Avatar</h5>
+                {{ profile_form.profile_picture|as_crispy_field }}
+                {{ profile_form.bio|as_crispy_field }}
+
+                <h5 class="font-weight-bold mb-3 mt-4 pt-3 border-top">Social Handles &amp; Links</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ profile_form.website|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ profile_form.twitter|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ profile_form.github|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ profile_form.linkedin|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                    <a href="{% url 'dashboard' %}" class="btn btn-light font-weight-bold">Cancel</a>
+                    <button type="submit" class="btn btn-warning font-weight-bold px-4 py-2">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Save Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

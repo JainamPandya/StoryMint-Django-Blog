@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Article — StoryMint{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+<style>
+    .EasyMDEContainer {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .editor-toolbar {
+        border-color: var(--border-color);
+        background-color: var(--bg-secondary);
+    }
+    .CodeMirror {
+        border-color: var(--border-color);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 1.05rem;
+        min-height: 380px;
+    }
+    .editor-preview {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+    }
+</style>
+
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-11">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <div>
+                <h2 class="font-weight-bold mb-0">Edit Article</h2>
+                <small class="text-muted">Modifying: <em>{{ post.title }}</em></small>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm font-weight-bold">
+                &larr; Return to Dashboard
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm p-4 p-md-5">
+            <form action="{% url 'edit_post' post.slug %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-8">
+                        {{ form.title|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.category|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.featured_image|as_crispy_field }}
+                        {% if post.featured_image %}
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Current Image:</small>
+                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="img-thumbnail" style="max-height: 120px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center pt-3">
+                        {{ form.is_featured|as_crispy_field }}
+                    </div>
+                </div>
+
+                {{ form.short_description|as_crispy_field }}
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-bold">Tags (Select all that apply)</label>
+                    <div class="border rounded p-3 bg-light d-flex flex-wrap" style="max-height: 140px; overflow-y: auto;">
+                        {{ form.tags }}
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-bold">Story Body (Rich Markdown &amp; WYSIWYG)</label>
+                    {{ form.blog_body }}
+                </div>
+
+                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                    <a href="{% url 'dashboard' %}" class="btn btn-light font-weight-bold">Cancel</a>
+                    <button type="submit" class="btn btn-warning font-weight-bold px-4 py-2">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const textarea = document.getElementById('blog-body-editor') || document.querySelector('textarea[name="blog_body"]');
+        if (textarea) {
+            new EasyMDE({
+                element: textarea,
+                spellChecker: false,
+                placeholder: "Tell your story... You can use headings, code blocks, quotes, bold, links, and lists.",
+                status: ["lines", "words", "cursor"],
+                toolbar: [
+                    "bold", "italic", "heading", "|",
+                    "quote", "code", "unordered-list", "ordered-list", "|",
+                    "link", "image", "|",
+                    "preview", "side-by-side", "fullscreen", "|",
+                    "guide"
+                ]
+            });
+        }
+    });
+</script>
+{% endblock %}

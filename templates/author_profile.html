@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ author.get_full_name|default:author.username }} — StoryMint Author{% endblock %}
+{% block meta_description %}{{ profile.bio|default:"Read all articles and perspectives by author on StoryMint." }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
+        <!-- Author Profile Header Card -->
+        <div class="card border-0 shadow-sm p-4 p-md-5 mb-5 text-center text-md-left">
+            <div class="d-flex flex-column flex-md-row align-items-center">
+                {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="{{ author.username }}" class="avatar-lg mb-3 mb-md-0 mr-md-4" style="width: 110px; height: 110px;">
+                {% else %}
+                <span class="avatar-placeholder avatar-lg mb-3 mb-md-0 mr-md-4" style="width: 110px; height: 110px; font-size: 2.75rem;">
+                    {{ author.username|slice:":1"|upper }}
+                </span>
+                {% endif %}
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-2">
+                        <div>
+                            <h2 class="font-weight-bold mb-1">{{ author.get_full_name|default:author.username }}</h2>
+                            <small class="text-muted">@{{ author.username }} &bull; Member since {{ author.date_joined|date:"F Y" }}</small>
+                        </div>
+                        {% if user == author %}
+                        <a href="{% url 'profile_settings' %}" class="btn btn-outline-secondary btn-sm mt-3 mt-md-0 font-weight-bold">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i> Edit Profile
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <p class="text-secondary mb-3 mt-2">
+                        {{ profile.bio|default:"Author and creator at StoryMint sharing insights, perspectives, and ideas." }}
+                    </p>
+
+                    <!-- Social Handles -->
+                    <div class="d-flex flex-wrap justify-content-center justify-content-md-start small">
+                        {% if profile.website %}
+                        <a href="{{ profile.website }}" target="_blank" class="mr-3 mb-1 text-muted"><i class="fa-solid fa-globe mr-1"></i> {{ profile.website }}</a>
+                        {% endif %}
+                        {% if profile.twitter %}
+                        <a href="https://twitter.com/{{ profile.twitter }}" target="_blank" class="mr-3 mb-1 text-muted"><i class="fa-brands fa-x-twitter mr-1"></i> {{ profile.twitter }}</a>
+                        {% endif %}
+                        {% if profile.github %}
+                        <a href="https://github.com/{{ profile.github }}" target="_blank" class="mr-3 mb-1 text-muted"><i class="fa-brands fa-github mr-1"></i> {{ profile.github }}</a>
+                        {% endif %}
+                        {% if profile.linkedin %}
+                        <a href="https://linkedin.com/in/{{ profile.linkedin }}" target="_blank" class="mb-1 text-muted"><i class="fa-brands fa-linkedin mr-1"></i> {{ profile.linkedin }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Articles by Author -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <h4 class="font-weight-bold mb-0">Published Stories ({{ total_posts }})</h4>
+        </div>
+
+        {% if posts %}
+        <div class="row">
+            {% for post in posts %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    {% if post.featured_image %}
+                    <a href="{% url 'blogs' post.slug %}">
+                        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    </a>
+                    {% endif %}
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <a href="{% url 'posts_by_category' post.category.id %}" class="badge-category">{{ post.category.category_name }}</a>
+                                <small class="text-muted"><i class="fa-regular fa-clock mr-1"></i> {{ post.reading_time }} min read</small>
+                            </div>
+                            <h5 class="card-title font-weight-bold mb-2">
+                                <a href="{% url 'blogs' post.slug %}">{{ post.title }}</a>
+                            </h5>
+                            <p class="card-text text-muted small mb-3">{{ post.short_description|truncatewords:18 }}</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top small text-muted">
+                            <span>{{ post.created_at|date:"M j, Y" }}</span>
+                            <span><i class="fa-regular fa-eye mr-1"></i> {{ post.views_count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if posts.has_other_pages %}
+        <nav aria-label="Page navigation" class="my-4">
+            <ul class="pagination justify-content-center">
+                {% if posts.has_previous %}
+                <li class="page-item"><a class="page-link shadow-sm" href="?page={{ posts.previous_page_number }}">&laquo; Newer</a></li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo; Newer</span></li>
+                {% endif %}
+
+                {% for num in posts.paginator.page_range %}
+                {% if posts.number == num %}
+                <li class="page-item active"><span class="page-link bg-warning border-warning text-dark font-weight-bold">{{ num }}</span></li>
+                {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
+                <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+                {% endfor %}
+
+                {% if posts.has_next %}
+                <li class="page-item"><a class="page-link shadow-sm" href="?page={{ posts.next_page_number }}">Older &raquo;</a></li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Older &raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">No published articles yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
