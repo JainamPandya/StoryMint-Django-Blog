@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}404 — Story Not Found | StoryMint{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center text-center my-5 py-5">
+    <div class="col-lg-7">
+        <span class="badge-category mb-3">Error 404</span>
+        <h1 class="display-1 font-weight-bold mb-2" style="font-size: 6rem; letter-spacing: -2px;">404</h1>
+        <h3 class="font-weight-bold mb-3">Lost in the Story Archive?</h3>
+        <p class="lead text-muted mb-4">
+            The story, topic, or author page you are looking for doesn't exist, has moved, or is currently an unpublished draft.
+        </p>
+
+        <!-- Search Bar -->
+        <div class="card border-0 shadow-sm p-3 mb-4 mx-auto" style="max-width: 480px;">
+            <form action="{% url 'search' %}" method="GET">
+                <div class="input-group">
+                    <input class="form-control" type="text" name="keyword" placeholder="Search other stories &amp; topics..." required>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-warning font-weight-bold">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="d-flex justify-content-center">
+            <a href="{% url 'home' %}" class="btn btn-warning font-weight-bold px-4 py-2 mr-2">
+                <i class="fa-solid fa-house mr-1"></i> Return Home
+            </a>
+            <a href="{% url 'search' %}" class="btn btn-outline-secondary font-weight-bold px-4 py-2">
+                Browse All Stories
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

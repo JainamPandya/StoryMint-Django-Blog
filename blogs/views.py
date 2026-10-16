@@ -49,14 +49,23 @@ def posts_by_tag(request, slug):
 
 
 def blogs(request, slug):
-    single_blog = get_object_or_404(Blog, slug=slug, status='Published')
+    single_blog = get_object_or_404(Blog, slug=slug)
 
-    # View counter (Session based to avoid count manipulation)
-    session_key = f'viewed_blog_{single_blog.id}'
-    if not request.session.get(session_key, False):
-        single_blog.views_count += 1
-        single_blog.save(update_fields=['views_count'])
-        request.session[session_key] = True
+    # Draft Preview Mode: Authors and Admins can preview their unpublished drafts
+    is_draft_preview = False
+    if single_blog.status != 'Published':
+        if request.user.is_authenticated and (request.user == single_blog.author or request.user.is_superuser):
+            is_draft_preview = True
+        else:
+            raise Http404("This article is currently in draft mode and not published.")
+
+    # View counter (only record views for published articles)
+    if not is_draft_preview:
+        session_key = f'viewed_blog_{single_blog.id}'
+        if not request.session.get(session_key, False):
+            single_blog.views_count += 1
+            single_blog.save(update_fields=['views_count'])
+            request.session[session_key] = True
 
     # Related Posts (same category, excluding current post)
     related_posts = Blog.objects.filter(
@@ -82,6 +91,7 @@ def blogs(request, slug):
         'comments': comments,
         'is_liked': is_liked,
         'is_bookmarked': is_bookmarked,
+        'is_draft_preview': is_draft_preview,
     }
     return render(request, 'blogs.html', context)
 

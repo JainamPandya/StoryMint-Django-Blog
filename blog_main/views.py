@@ -91,3 +91,15 @@ def logout(request):
     auth.logout(request)
     messages.info(request, 'You have been logged out successfully.')
     return redirect('home')
+
+
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /dashboard/",
+        "Disallow: /admin/",
+        "",
+        f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")

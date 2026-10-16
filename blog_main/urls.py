@@ -27,6 +27,7 @@ urlpatterns = [
     path('newsletter/subscribe/', BlogsView.subscribe_newsletter, name='subscribe_newsletter'),
     path('feed/', LatestPostsFeed(), name='post_feed'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('robots.txt', views.robots_txt, name='robots_txt'),
     path('register/', views.register, name='register'),
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),

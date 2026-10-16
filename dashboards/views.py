@@ -200,3 +200,64 @@ def profile_settings(request):
         'profile': profile,
     }
     return render(request, 'dashboard/profile_settings.html', context)
+
+
+# Change Password
+@login_required
+def change_password(request):
+    from django.contrib.auth.forms import PasswordChangeForm
+    from django.contrib.auth import update_session_auth_hash
+
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, 'dashboard/change_password.html', {'form': form})
+
+
+# Newsletter Subscribers Management & Export
+@login_required
+def subscribers(request):
+    from blogs.models import NewsletterSubscriber
+
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access restricted to administrators.')
+        return redirect('dashboard')
+
+    subscribers_list = NewsletterSubscriber.objects.all().order_by('-subscribed_at')
+    context = {
+        'subscribers_list': subscribers_list,
+        'total_subscribers': subscribers_list.count(),
+    }
+    return render(request, 'dashboard/subscribers.html', context)
+
+
+@login_required
+def export_subscribers_csv(request):
+    import csv
+    from django.http import HttpResponse
+    from blogs.models import NewsletterSubscriber
+
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access restricted to administrators.')
+        return redirect('dashboard')
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="storymint_subscribers.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Email Address', 'Subscription Date'])
+
+    for sub in NewsletterSubscriber.objects.all().order_by('-subscribed_at'):
+        writer.writerow([sub.id, sub.email, sub.subscribed_at.strftime('%Y-%m-%d %H:%M:%S')])
+
+    return response
+

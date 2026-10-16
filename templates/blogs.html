@@ -13,6 +13,21 @@
     <div class="col-lg-9 blog-main">
         <article class="blog-post">
 
+            <!-- Draft Preview Alert -->
+            {% if is_draft_preview %}
+            <div class="alert alert-warning border-0 shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 p-3 rounded">
+                <div class="mb-2 mb-md-0">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i>
+                    <strong>Draft Preview:</strong> This story is unpublished and visible only to you.
+                </div>
+                <div>
+                    <a href="{% url 'edit_post' single_blog.slug %}" class="btn btn-sm btn-dark font-weight-bold">
+                        <i class="fa-solid fa-pen-to-square mr-1"></i> Edit &amp; Publish
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Category Badge -->
             <div class="mb-3">
                 <a href="{% url 'posts_by_category' single_blog.category.id %}" class="badge-category">
@@ -53,6 +68,31 @@
                 <div class="d-flex align-items-center">
                     <span class="mr-3"><i class="fa-regular fa-eye mr-1"></i> {{ single_blog.views_count }} views</span>
                     <a href="#comments-section" class="text-muted"><i class="fa-regular fa-comment mr-1"></i> {{ single_blog.total_comments }} comments</a>
+                </div>
+            </div>
+
+            <!-- "Listen to Story" Audio Player -->
+            <div class="card border-0 bg-light p-3 mb-4 rounded-lg shadow-sm" id="tts-player-container">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div class="d-flex align-items-center mb-2 mb-md-0">
+                        <button id="tts-play-btn" class="btn btn-warning rounded-circle mr-3" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Listen to story">
+                            <i class="fa-solid fa-play" id="tts-play-icon"></i>
+                        </button>
+                        <div>
+                            <strong class="d-block" style="font-size: 0.95rem;">Listen to this story</strong>
+                            <small class="text-muted" id="tts-status">Estimated listen time: {{ single_blog.reading_time }} min</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="btn-group btn-group-sm mr-2" role="group">
+                            <button type="button" class="btn btn-outline-secondary tts-speed-btn active font-weight-bold" data-speed="1">1x</button>
+                            <button type="button" class="btn btn-outline-secondary tts-speed-btn font-weight-bold" data-speed="1.25">1.25x</button>
+                            <button type="button" class="btn btn-outline-secondary tts-speed-btn font-weight-bold" data-speed="1.5">1.5x</button>
+                        </div>
+                        <button id="tts-stop-btn" class="btn btn-sm btn-outline-danger" title="Stop listening" style="display: none;">
+                            <i class="fa-solid fa-stop"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -367,5 +407,99 @@
             });
         });
     }
+
+    // Text-to-Speech (TTS) "Listen to Story" Player
+    (function() {
+        const ttsContainer = document.getElementById('tts-player-container');
+        const playBtn = document.getElementById('tts-play-btn');
+
+        if (!('speechSynthesis' in window)) {
+            if (ttsContainer) ttsContainer.style.display = 'none';
+            return;
+        }
+
+        let currentRate = 1.0;
+        let isSpeaking = false;
+
+        function getArticleText() {
+            const contentEl = document.querySelector('.blog-content');
+            const titleEl = document.querySelector('.blog-post-title');
+            const title = titleEl ? titleEl.innerText : '';
+            const body = contentEl ? contentEl.innerText : '';
+            return `${title}. ${body}`;
+        }
+
+        function resetTTS() {
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+            playIcon.className = 'fa-solid fa-play';
+            stopBtn.style.display = 'none';
+            statusText.textContent = 'Estimated listen time: {{ single_blog.reading_time }} min';
+        }
+
+        function startSpeaking() {
+            window.speechSynthesis.cancel();
+            const text = getArticleText();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = currentRate;
+            utterance.pitch = 1.0;
+
+            utterance.onstart = function() {
+                isSpeaking = true;
+                playIcon.className = 'fa-solid fa-pause';
+                stopBtn.style.display = 'inline-block';
+                statusText.textContent = 'Playing audio...';
+            };
+
+            utterance.onend = function() {
+                resetTTS();
+            };
+
+            utterance.onerror = function() {
+                resetTTS();
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        if (playBtn) {
+            playBtn.addEventListener('click', function() {
+                if (window.speechSynthesis.speaking) {
+                    if (window.speechSynthesis.paused) {
+                        window.speechSynthesis.resume();
+                        playIcon.className = 'fa-solid fa-pause';
+                        statusText.textContent = 'Playing audio...';
+                    } else {
+                        window.speechSynthesis.pause();
+                        playIcon.className = 'fa-solid fa-play';
+                        statusText.textContent = 'Paused';
+                    }
+                } else {
+                    startSpeaking();
+                }
+            });
+        }
+
+        if (stopBtn) {
+            stopBtn.addEventListener('click', function() {
+                resetTTS();
+            });
+        }
+
+        speedBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                speedBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentRate = parseFloat(this.dataset.speed);
+                if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+                    startSpeaking();
+                }
+            });
+        });
+
+        window.addEventListener('beforeunload', function() {
+            window.speechSynthesis.cancel();
+        });
+    })();
 </script>
 {% endblock %}

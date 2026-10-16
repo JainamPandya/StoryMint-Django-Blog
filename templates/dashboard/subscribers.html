@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Newsletter Subscribers — StoryMint{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <div>
+                <h2 class="font-weight-bold mb-0">Newsletter Audience</h2>
+                <small class="text-muted">Total active subscribers: <strong>{{ total_subscribers }}</strong></small>
+            </div>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm mr-2">&larr; Dashboard</a>
+                {% if subscribers_list %}
+                <a href="{% url 'export_subscribers_csv' %}" class="btn btn-warning btn-sm font-weight-bold">
+                    <i class="fa-solid fa-file-csv mr-1"></i> Export to CSV
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                {% if subscribers_list %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Email Address</th>
+                                <th>Subscribed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in subscribers_list %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong>{{ sub.email }}</strong>
+                                </td>
+                                <td><small class="text-muted">{{ sub.subscribed_at|date:"F j, Y, g:i a" }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fa-regular fa-envelope-open fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted mb-2">No subscribers yet</h5>
+                    <p class="text-muted small mb-0">Readers who subscribe using the newsletter box in your footer will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

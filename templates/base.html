@@ -88,10 +88,12 @@
                             <a class="dropdown-item" href="{% url 'add_post' %}"><i class="fa-solid fa-pen-to-square mr-2"></i> Write a Story</a>
                             <a class="dropdown-item" href="{% url 'author_profile' user.username %}"><i class="fa-solid fa-id-card mr-2"></i> Public Profile</a>
                             <a class="dropdown-item" href="{% url 'profile_settings' %}"><i class="fa-solid fa-sliders mr-2"></i> Profile Settings</a>
+                            <a class="dropdown-item" href="{% url 'change_password' %}"><i class="fa-solid fa-key mr-2"></i> Change Password</a>
                             {% if user.is_staff or user.is_superuser %}
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="{% url 'categories' %}"><i class="fa-solid fa-folder-tree mr-2"></i> Manage Categories</a>
                             <a class="dropdown-item" href="{% url 'tags' %}"><i class="fa-solid fa-tags mr-2"></i> Manage Tags</a>
+                            <a class="dropdown-item" href="{% url 'subscribers' %}"><i class="fa-solid fa-users mr-2"></i> Newsletter Subscribers</a>
                             <a class="dropdown-item" href="/admin/" target="_blank"><i class="fa-solid fa-shield-halved mr-2"></i> Django Admin</a>
                             {% endif %}
                             <div class="dropdown-divider"></div>

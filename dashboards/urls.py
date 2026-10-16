@@ -15,6 +15,10 @@ urlpatterns = [
     path('tags/', views.tags, name='tags'),
     path('tags/add/', views.add_tag, name='add_tag'),
     path('tags/delete/<int:pk>/', views.delete_tag, name='delete_tag'),
-    # Profile
+    # Profile & Security
     path('profile/', views.profile_settings, name='profile_settings'),
+    path('change-password/', views.change_password, name='change_password'),
+    # Newsletter Management
+    path('subscribers/', views.subscribers, name='subscribers'),
+    path('subscribers/export/', views.export_subscribers_csv, name='export_subscribers_csv'),
 ]
